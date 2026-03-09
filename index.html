@@ -498,6 +498,30 @@
       color: var(--text-dim);
     }
 
+    .meal-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: .9rem;
+      letter-spacing: .05em;
+    }
+
+    .meal-status.meal-given {
+      background: rgba(255, 209, 128, .1);
+      border: 1px solid rgba(255, 209, 128, .35);
+      color: var(--gold);
+    }
+
+    .meal-status.meal-pending {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+
     .no-result-msg {
       font-size: .9rem;
       color: var(--text-dim);
@@ -630,15 +654,24 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const checkinsRef = db.ref('checkins');
+    const mealsRef = db.ref('meals');
 
-    let registrants = RAW.map((r, i) => ({ ...r, id: i }));
+    let registrants = RAW.map((r, i) => ({ ...r, id: i, mealTaken: false }));
     let checkinData = {};
+    let mealData = {};
 
     // Sync check-in state so students see live status
     checkinsRef.on('value', (snap) => {
       checkinData = snap.val() || {};
       registrants.forEach(r => { r.checkedIn = checkinData[r.row] === true; });
-      // Re-render if there's an active search
+      const q = document.getElementById('search-input').value.trim();
+      if (q.length >= 2) renderSearch(q);
+    });
+
+    // Sync meal-given state so students see live status
+    mealsRef.on('value', (snap) => {
+      mealData = snap.val() || {};
+      registrants.forEach(r => { r.mealTaken = mealData[r.row] === true; });
       const q = document.getElementById('search-input').value.trim();
       if (q.length >= 2) renderSearch(q);
     });
@@ -718,6 +751,11 @@
               ${r.checkedIn
             ? '✓ &nbsp;Already Checked In'
             : '⏳ &nbsp;Pending Check-In at the event'}
+            </div>
+            <div class="meal-status ${r.mealTaken ? 'meal-given' : 'meal-pending'}">
+              ${r.mealTaken
+            ? '🍽 &nbsp;Meal Given'
+            : '🍽 &nbsp;Meal Not Yet Given'}
             </div>
           </div>`;
       });
