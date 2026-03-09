@@ -726,6 +726,71 @@
       box-shadow: 0 0 16px rgba(107, 63, 232, 0.2);
     }
 
+    /* ── FILTERS ── */
+    .filter-section {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .filter-label {
+      font-size: .7rem;
+      color: var(--text-dim);
+      font-weight: 700;
+      font-family: 'Rajdhani', sans-serif;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      min-width: 44px;
+    }
+
+    .filter-chip {
+      border: 1.5px solid var(--border);
+      background: var(--bg3);
+      color: var(--text-dim);
+      border-radius: 99px;
+      padding: 4px 13px;
+      font-size: .75rem;
+      font-weight: 700;
+      font-family: 'Rajdhani', sans-serif;
+      letter-spacing: .05em;
+      cursor: pointer;
+      transition: border-color .18s, background .18s, color .18s, box-shadow .18s;
+      line-height: 1.4;
+    }
+
+    .filter-chip:hover {
+      border-color: var(--border-light);
+      color: var(--text);
+    }
+
+    .filter-chip.active {
+      background: rgba(107, 63, 232, 0.18);
+      border-color: var(--purple-glow);
+      color: var(--accent);
+      box-shadow: 0 0 8px rgba(107, 63, 232, 0.2);
+    }
+
+    .filter-chip.active-green {
+      background: rgba(105, 240, 174, 0.1);
+      border-color: var(--green);
+      color: var(--green);
+      box-shadow: 0 0 8px rgba(105, 240, 174, 0.15);
+    }
+
+    .filter-chip.active-red {
+      background: rgba(255, 107, 138, 0.1);
+      border-color: var(--red);
+      color: var(--red);
+    }
+
     @media (max-width: 600px) {
 
       .all-table th:nth-child(4),
@@ -823,6 +888,51 @@
           <input type="text" class="search-input" id="search-input" placeholder="Type name, email, or year…"
             oninput="onSearch(this.value)" autocomplete="off" autocorrect="off" spellcheck="false">
           <button class="clear-btn" id="clear-btn" onclick="clearSearch()">✕</button>
+        </div>
+        <div class="filter-section">
+          <div class="filter-row">
+            <span class="filter-label">Year</span>
+            <button class="filter-chip active" data-filter="year" data-value="all"
+              onclick="setFilter('year','all')">All</button>
+            <button class="filter-chip" data-filter="year" data-value="1st year"
+              onclick="setFilter('year','1st year')">1st</button>
+            <button class="filter-chip" data-filter="year" data-value="2nd year"
+              onclick="setFilter('year','2nd year')">2nd</button>
+            <button class="filter-chip" data-filter="year" data-value="3rd year"
+              onclick="setFilter('year','3rd year')">3rd</button>
+            <button class="filter-chip" data-filter="year" data-value="4th year"
+              onclick="setFilter('year','4th year')">4th</button>
+            <button class="filter-chip" data-filter="year" data-value="Graduate"
+              onclick="setFilter('year','Graduate')">Grad</button>
+            <button class="filter-chip" data-filter="year" data-value="External"
+              onclick="setFilter('year','External')">External</button>
+          </div>
+          <div class="filter-row">
+            <span class="filter-label">Status</span>
+            <button class="filter-chip active" data-filter="status" data-value="all"
+              onclick="setFilter('status','all')">All</button>
+            <button class="filter-chip" data-filter="status" data-value="pending"
+              onclick="setFilter('status','pending')">⏳ Pending</button>
+            <button class="filter-chip" data-filter="status" data-value="checked"
+              onclick="setFilter('status','checked')">✓ Checked In</button>
+          </div>
+          <div class="filter-row">
+            <span class="filter-label">Meal</span>
+            <button class="filter-chip active" data-filter="meal" data-value="all"
+              onclick="setFilter('meal','all')">All</button>
+            <button class="filter-chip" data-filter="meal" data-value="quarter" onclick="setFilter('meal','quarter')">🍗
+              ¼ Chicken</button>
+            <button class="filter-chip" data-filter="meal" data-value="half" onclick="setFilter('meal','half')">🍗 ½
+              Chicken</button>
+            <button class="filter-chip" data-filter="meal" data-value="seekh" onclick="setFilter('meal','seekh')">🥩
+              Seekh</button>
+            <button class="filter-chip" data-filter="meal" data-value="shawerma"
+              onclick="setFilter('meal','shawerma')">🌯 Shawerma</button>
+            <button class="filter-chip" data-filter="meal" data-value="koshari" onclick="setFilter('meal','koshari')">🍲
+              Koshari</button>
+            <button class="filter-chip" data-filter="meal" data-value="own" onclick="setFilter('meal','own')">🧺 Own
+              Meal</button>
+          </div>
         </div>
         <div id="results-container" style="margin-top:16px;"></div>
       </div>
@@ -988,6 +1098,39 @@
   </div>`;
     }
 
+    // ── FILTERS ──
+    let activeFilters = { year: 'all', status: 'all', meal: 'all' };
+
+    function setFilter(type, value) {
+      activeFilters[type] = value;
+      document.querySelectorAll(`.filter-chip[data-filter="${type}"]`).forEach(el => {
+        el.classList.remove('active', 'active-green', 'active-red');
+        if (el.dataset.value === value) {
+          if (value === 'checked') el.classList.add('active-green');
+          else if (value === 'pending') el.classList.add('active-red');
+          else el.classList.add('active');
+        }
+      });
+      renderResults(lastQuery);
+    }
+
+    const MEAL_KEYS = {
+      quarter: s => s.includes('1/4'),
+      half: s => s.includes('1/2'),
+      seekh: s => s.toLowerCase().includes('seekh'),
+      shawerma: s => s.toLowerCase().includes('shawerma'),
+      koshari: s => s.toLowerCase().includes('koshari'),
+      own: s => s.toLowerCase().includes('own meal'),
+    };
+
+    function matchFilters(r) {
+      if (activeFilters.year !== 'all' && r.year !== activeFilters.year) return false;
+      if (activeFilters.status === 'pending' && r.checkedIn) return false;
+      if (activeFilters.status === 'checked' && !r.checkedIn) return false;
+      if (activeFilters.meal !== 'all' && !MEAL_KEYS[activeFilters.meal]?.(r.meal)) return false;
+      return true;
+    }
+
     // ── SEARCH ──
     let lastQuery = '';
     function onSearch(q) {
@@ -1004,13 +1147,17 @@
 
     function renderResults(q) {
       const container = document.getElementById('results-container');
-      if (!q || q.trim().length < 1) {
+      const hasQuery = q && q.trim().length >= 1;
+      const hasFilters = activeFilters.year !== 'all' || activeFilters.status !== 'all';
+      if (!hasQuery && !hasFilters) {
         container.innerHTML = '';
         return;
       }
-      const found = registrants.map((r, i) => ({ r, i })).filter(({ r }) => match(r, q));
+      const found = registrants.map((r, i) => ({ r, i }))
+        .filter(({ r }) => (!hasQuery || match(r, q)) && matchFilters(r));
       if (found.length === 0) {
-        container.innerHTML = `<div class="no-results">😔 No one found matching "<strong>${q}</strong>"</div>`;
+        const desc = hasQuery ? `"<strong>${q}</strong>"` : 'the selected filters';
+        container.innerHTML = `<div class="no-results">😔 No one found matching ${desc}</div>`;
         return;
       }
       let html = `<div class="results-count">${found.length} result${found.length > 1 ? 's' : ''} found</div>`;
